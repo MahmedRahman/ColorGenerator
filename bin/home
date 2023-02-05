@@ -1,0 +1,173 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:krz/core/assets/app_assets.dart';
+import 'package:krz/core/extensions/fontWeight_ex.dart';
+import 'package:krz/core/shared_widgets/base_scaffold.dart';
+import 'package:krz/core/shared_widgets/cached_network_image.dart';
+import 'package:krz/core/shared_widgets/custom_ritch_text.dart';
+import 'package:krz/core/spacer.dart';
+import 'package:krz/core/theme/theme_data.dart';
+import 'package:krz/features/appointments/domin/entities/provider_entity.dart';
+import 'package:krz/features/donate/presentation/pages/donate.dart';
+import 'package:krz/features/get_appointment/presentation/pages/appointment_get.dart';
+import 'package:krz/features/product/presentation/widgets/product_description_widget.dart';
+import '../../../../core/const/app_colors.dart';
+import '../../../../core/routes/app_pages.dart';
+import '../../../../core/shared_page/app_page.dart';
+import '../../../../core/shared_widgets/provider_container.dart';
+import '../../../cart/presentation/widgets/cart_buttons.dart';
+import '../../../product/domain/entities/product_details_entity.dart';
+import '../../../product/presentation/widgets/product_buttons_widget.dart';
+import '../../../product/presentation/widgets/product_features_widget.dart';
+import '../../../product/presentation/widgets/product_info_widget.dart';
+import '../../../product/presentation/widgets/product_slider_widget.dart';
+import '../../domain/entities/offer_details_entity.dart';
+import '../controller/offer_details_controller.dart';
+import '../widgets/offer_details_buttons.dart';
+
+class OfferDetails extends StatelessWidget {
+  OfferDetailsController offerController = Get.put(OfferDetailsController(Get.arguments));
+  @override
+  Widget build(BuildContext context) {
+    return BaseScaffold(
+        body: offerController.obx(
+      (offer) => BuildBody(
+        offer: offer!,
+      ),
+      onLoading: AppPageShared.pageLoading(),
+      onError: (val) {
+        return AppPageShared.pageError(
+          message: val,
+          onPressed: () {},
+        );
+      },
+    ));
+  }
+}
+
+class BuildBody extends GetView {
+  const BuildBody({Key? key, required this.offer}) : super(key: key);
+
+  final OfferDetailsEntity offer;
+
+  BorderSide get _border => BorderSide(
+        color: AppColors.KBorderColor,
+        width: 1.5,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        ///product slider
+        productSliderWidget(
+          images: offer.images,
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              left: _border,
+              right: _border,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ///offer info
+              ProductInfoWidget(
+                name: offer.title,
+                price: offer.price.toString(),
+                oldPrice: offer.oldPrice.toString(),
+                discountPercentage: offer.discountPercentage!,
+                initRating: offer.rate.toInt(),
+                totalRate: offer.totalRate,
+              ),
+              spacerH12(),
+              CustomRichText(
+                mainAxisAlignment: MainAxisAlignment.start,
+                firstText: 'offer_no'.tr,
+                secondText: '#${offer.offerNumber}',
+                firstTextStyle: AppTheme.labelLarge.copyWith(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeightEx.Bold,
+                ),
+                secondTextStyle: GoogleFonts.poppins(
+                  fontSize: 14.sp,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              spacerH12(),
+              ProviderContainer(
+                providerEntity: ProviderEntity(
+                    name: offer.providerName,
+                    image: offer.providerImage,
+                    city: '',
+                    fullAddress: offer.providerAddress,
+                    lat: 0.0,
+                    lng: 0.0),
+                onShowOnMapTapped: () {},
+              ),
+              Divider(
+                color: AppColors.KColorLightBlue,
+                thickness: 1,
+              ).paddingOnly(
+                top: 12.5.h,
+                bottom: 12.5.h,
+              ),
+
+              ///offer description
+              ProductDescriptionWidget(title: 'offer_description'.tr, description: offer.description),
+
+              spacerH12(),
+
+              ///offer features
+              GeneralFeaturesWidget(
+                checkIconColor: AppColors.KColorRed,
+                checkIconBackgroundColor: AppColors.KColorRed4,
+                title: 'offer_features'.tr,
+                features: offer.features,
+              ),
+
+              spacerH12(),
+
+              ///offer payment info
+              GeneralFeaturesWidget(
+                checkIconColor: AppColors.KColorRed,
+                checkIconBackgroundColor: AppColors.KColorRed4,
+                title: 'payment_details'.tr,
+                features: offer.paymentInfo,
+              ),
+             
+             
+              SizedBox(
+                height: 27.h,
+              ),
+            ],
+          ).paddingSymmetric(horizontal: 20),
+        ),
+
+        ///offer buttons
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 11),
+          width: context.width,
+          color: Color(0xffeeeeee),
+
+          child: OfferDetailsButtons(
+            outLineButtonTitle: 'offer_gift'.tr,
+            buttonTitle: 'offer_booking'.tr,
+            continueShoppingPressed: () => Get.to(AppointmentGet()),
+            onSendGiftPressed: () {
+              Get.to(() => DonatePage());
+            },
+          ),
+        )
+      ],
+    );
+  }
+}
